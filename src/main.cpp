@@ -206,7 +206,7 @@ void s1_on() {
   //client.publish(nombre_completo_salida_1.c_str(), "on");
   client.publish("Puerta/Estado", "Apertura Activa");
   client.publish(s1c.c_str(), "on");
-  delay(1000);
+  delay(3000);
   s1_off();
 }
 
@@ -226,7 +226,7 @@ void s2_on() {
   //client.publish(nombre_completo_salida_2.c_str(), "on");
   client.publish("Puerta/Estado", "Cierre Activo");
   client.publish(s1c.c_str(), "on");
-  delay(1000);
+  delay(3000);
   s2_off();
 }
 
