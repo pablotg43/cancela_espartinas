@@ -1,0 +1,157 @@
+// HTML web page to handle 3 input fields (inputString, inputInt, inputFloat)
+
+const char index_html[] PROGMEM = R"rawliteral(
+<!DOCTYPE HTML>
+  <html>
+    <head>
+      <title>ESP Input Form</title>
+      <meta charset="UTF-8"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <script>
+        function submitMessage() {
+          alert("Guardar configuración");
+          setTimeout(function(){ document.location.reload(false); }, 500);   
+        }
+      </script>
+    </head>
+    <body>
+      <style>
+        *{box-sizing:border-box;}
+
+        h1{
+          font-family: Helvetica;
+          font-size: 25px;
+        }
+
+        form{
+          font-family: Helvetica;
+          padding:16px;
+          border-radius:10px;
+          margin:auto;
+          background-color:#f5f2eb;
+          margin: 10px;
+        }
+
+        form label{
+          width: 400px;
+          display: inline-block;
+          font-size: 17px;
+        }
+
+        form input[type="text"]{
+          width: 350px;
+          padding: 3px 10px;
+          border: 1px solid #e0e0e0;
+          border-radius: 3px;
+          margin: 8px 0;
+          display: inline-block;
+          font-size: 17px;
+        }
+
+        form input[type="submit"]{
+          width: 100px;
+          padding: 8px 16px;
+          margin-left: 20px;
+          font-size: 17px;
+        } 
+
+        form input[type="submit"]:hover{
+          cursor:pointer;
+        }
+      </style>
+      <h1> Configuraciones </h1>
+      <div>
+        <form action="/get" target="hidden-form">
+          <label for="inputssid">SSID WIFI (%inputssid%)</label>
+          <input type="text" id="inputssid" name="inputssid" placeholder="Introducir dato..">
+          <input type="submit" value="Enviar" onclick="submitMessage()">
+        </form>
+      </div>      
+      <div>
+        <form action="/get" target="hidden-form">
+          <label for="inputpassword">Contraseña WIFI (%inputpassword%)</label>
+          <input type="text" id="inputpassword" name="inputpassword" placeholder="Introducir dato..">
+          <input type="submit" value="Enviar" onclick="submitMessage()">
+        </form>
+      </div>
+      <div>
+        <form action="/get" target="hidden-form">
+          <label for="servidor_MQTT">Servidor MQTT (%servidor_MQTT%)</label>
+          <input type="text" id="servidor_MQTT" name="servidor_MQTT" placeholder="Introducir dato..">
+          <input type="submit" value="Enviar" onclick="submitMessage()">
+        </form>
+      </div>
+      <div>
+        <form action="/get" target="hidden-form">
+          <label for="puerto_MQTT">Puerto MQTT (%puerto_MQTT%)</label>
+          <input type="text" id="puerto_MQTT" name="puerto_MQTT" placeholder="Introducir dato..">
+          <input type="submit" value="Enviar" onclick="submitMessage()">
+        </form>
+      </div>
+      <div>
+        <form action="/get" target="hidden-form">
+          <label for="dispositivo">Dispositivo (%dispositivo%)</label>
+          <input type="text" id="dispositivo" name="dispositivo" placeholder="Introducir dato..">
+          <input type="submit" value="Enviar" onclick="submitMessage()">
+        </form>
+      </div>
+      <div>
+        <form action="/get" target="hidden-form">
+          <label for="T1">T1 (%T1%)</label>
+          <input type="text" id="T1" name="T1" placeholder="Introducir dato..">
+          <input type="submit" value="Enviar" onclick="submitMessage()">
+        </form>
+      </div>
+      <div>
+        <form action="/get" target="hidden-form">
+          <label for="T2">T2(%T2%)</label>
+          <input type="text" id="T2" name="T2" placeholder="Introducir dato..">
+          <input type="submit" value="Enviar" onclick="submitMessage()">
+        </form>
+      </div>
+      <div>
+        <form action="/get" target="hidden-form">
+          <label for="T3">T3(%T3%)</label>
+          <input type="text" id="T3" name="T3" placeholder="Introducir dato..">
+          <input type="submit" value="Enviar" onclick="submitMessage()">
+        </form>
+      </div>
+      <div>
+        <form action="/get" target="hidden-form">
+          <label for="Tapertura">Tapertura(%Tapertura%)</label>
+          <input type="text" id="Tapertura" name="Tapertura" placeholder="Introducir dato..">
+          <input type="submit" value="Enviar" onclick="submitMessage()">
+        </form>
+      </div>      
+      <div>
+        <form action="/get" target="hidden-form">
+          <label for="Tcierre">Tcierre(%Tcierre%)</label>
+          <input type="text" id="Tcierre" name="Tcierre" placeholder="Introducir dato..">
+          <input type="submit" value="Enviar" onclick="submitMessage()">
+        </form>
+      </div>
+      <div>
+        <form action="/get" target="hidden-form">
+          <label for="reiniciar">Reiniciar (Escribir "1" para reiniciar) </label>
+          <input type="text" id="reiniciar" name="reiniciar" placeholder="Introducir dato..">
+          <input type="submit" value="Enviar" onclick="submitMessage()">
+        </form>
+      </div>
+      <h1> Estados </h1>
+      <div>
+        <form action="/get" target="hidden-form">
+          <label for="x5">Estado WIFI </label>
+          <input type="text" id="x5" name="x5" value="%estado_wifi%" disabled>
+        </form>
+      </div>
+      <div>
+        <form action="/get" target="hidden-form">
+          <label for="x6">Estado MQTT </label>
+          <input type="text" id="x6" name="x6" value="%estado_MQTT%" disabled>
+        </form>
+      </div>
+
+      <iframe style="display:none" name="hidden-form"></iframe>
+    </body>
+  </html>
+  )rawliteral";
