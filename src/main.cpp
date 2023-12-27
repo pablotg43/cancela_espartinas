@@ -21,8 +21,7 @@ int Valor_entrada_configuracion = 0;
 const int Entradas[2] = {4,5};
 
 // Salidas Digitales
-const int Salida[2] = {13,12};
-const int Entradas[2] = {4,5};
+const int Salida[2] = {12,13};
 
 enum Estados {
   Abriendo_señal_activa,
