@@ -97,21 +97,21 @@ const char index_html[] PROGMEM = R"rawliteral(
       </div>
       <div>
         <form action="/get" target="hidden-form">
-          <label for="T1">T1 (%T1%)</label>
+          <label for="T1">T1 - Cierre tras detección (%T1%)</label>
           <input type="text" id="T1" name="T1" placeholder="Introducir dato..">
           <input type="submit" value="Enviar" onclick="submitMessage()">
         </form>
       </div>
       <div>
         <form action="/get" target="hidden-form">
-          <label for="T2">T2(%T2%)</label>
+          <label for="T2">T2 - Cierre sin detección (%T2%)</label>
           <input type="text" id="T2" name="T2" placeholder="Introducir dato..">
           <input type="submit" value="Enviar" onclick="submitMessage()">
         </form>
       </div>
       <div>
         <form action="/get" target="hidden-form">
-          <label for="T3">T3(%T3%)</label>
+          <label for="T3">T3 - Autocierre (%T3%)</label>
           <input type="text" id="T3" name="T3" placeholder="Introducir dato..">
           <input type="submit" value="Enviar" onclick="submitMessage()">
         </form>
@@ -150,7 +150,6 @@ const char index_html[] PROGMEM = R"rawliteral(
           <input type="text" id="x6" name="x6" value="%estado_MQTT%" disabled>
         </form>
       </div>
-
       <iframe style="display:none" name="hidden-form"></iframe>
     </body>
   </html>

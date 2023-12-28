@@ -21,7 +21,7 @@ int Valor_entrada_configuracion = 0;
 const int Entradas[2] = {4,5};
 
 // Salidas Digitales
-const int Salida[2] = {12,13};
+const int Salida[2] = {13,12};
 
 enum Estados {
   Abriendo_señal_activa,
@@ -43,10 +43,9 @@ unsigned long horas = 3600000;
 unsigned long minutos = 60000;
 unsigned long segundos = 1000;
 
-
 //Temporizadores
 unsigned long now = 0;
-unsigned long temp_comms = 0;
+unsigned long temp_Tcomms = 0;
 unsigned long Temp_T1 = 0;
 unsigned long Temp_T2 = 0;
 unsigned long Temp_T3 = 0;
@@ -57,11 +56,11 @@ unsigned long Temp_T4 = 0;
 //Tiempos
 unsigned long Tapertura = 10000;
 unsigned long Tcierre = 10000;
-unsigned long T1 = 10000;
-unsigned long T2 = 10000;
-unsigned long T3 = 10000;
-unsigned long T4 = 1000;
-
+unsigned long T1 = 10000; // Cierre después de detección
+unsigned long T2 = 10000; // Cierre sin detección 
+unsigned long T3 = 10000; // Autocierre
+unsigned long T4 = 3000;  // Tiempo Activación Señales
+unsigned long Tcomms = 10000;  // Tiempo Comunicaciones
 
 //Ordenes
 boolean ordenes[2] = {false,false};
@@ -71,6 +70,10 @@ boolean entradas[2] = {false,false};
 boolean cambio_estado=false;
 String s1c[2] = {"s1", "s2"};
 String s1ctext[2] = {"off", "off"};
+String sa="";
+String sb[5]={"","","","",""};
+String sc[2]={"",""};
+String sd[2]={"",""};
 
 // Nombres equipos y señales
 int numero_puerto_MQTT = 1883;
@@ -96,44 +99,55 @@ void proximoEstado()
 {
     switch (estado) {
         case Estados::Cerrando_señal_activa:
-            if (now - Temp_T4 > T4) { estado=Estados::Cerrando; cambio_estado=true;  }
-            else if (ordenes[0]) {estado=Estados::Abriendo_señal_activa; cambio_estado=true;}
-            else if (entradas[0]) {estado=Estados::Abriendo_con_deteccion_y_orden; cambio_estado=true;}
+            // Serial.println("Estado Cerrando_señal_activa");
+            if (now - Temp_T4 > T4) { estado=Estados::Cerrando; cambio_estado=true; Temp_Tcierre=now;  }
+            else if (ordenes[0]) {estado=Estados::Abriendo_señal_activa; cambio_estado=true; Temp_T4=now;}
+            else if (entradas[0]) {estado=Estados::Abriendo_con_deteccion_y_orden; cambio_estado=true; Temp_T4=now;}
         break;
         case Estados::Cerrada:
-            if (now - Temp_T3 > T3) { estado=Estados::Cerrada; cambio_estado=true;  }
-            else if (ordenes[0]) {estado=Estados::Abriendo_señal_activa; cambio_estado=true;}
+            // Serial.println("Estado Cerrada");
+            if (now - Temp_T3 > T3) { estado=Estados::Cerrada; cambio_estado=true; Temp_T3=now;  }
+            else if (ordenes[0]) {estado=Estados::Abriendo_señal_activa; cambio_estado=true; Temp_T4=now;}
         break;
         case Estados::Cerrando:
-            if (now - Temp_Tcierre > Tcierre) { estado=Estados::Cerrada; cambio_estado=true;  }
-            else if (ordenes[0]) {estado=Estados::Abriendo_señal_activa; cambio_estado=true;}
-            else if (entradas[0]) {estado=Estados::Abriendo_con_deteccion_y_orden; cambio_estado=true;}
+            // Serial.println("Estado Cerrando");
+            if (now - Temp_Tcierre > Tcierre) { estado=Estados::Cerrada; cambio_estado=true; Temp_T3=now;  }
+            else if (ordenes[0]) {estado=Estados::Abriendo_señal_activa; cambio_estado=true; Temp_T4=now;}
+            else if (entradas[0]) {estado=Estados::Abriendo_con_deteccion_y_orden; cambio_estado=true; Temp_T4=now;}
         break;        
         case Estados::Abriendo_señal_activa:
-            if (now - Temp_T4 > T4) { estado=Estados::Abriendo; cambio_estado=true;  }
-            else if (ordenes[1]) {estado=Estados::Cerrando_señal_activa; cambio_estado=true;}
-            else if (entradas[0]) {estado=Estados::Abriendo_con_deteccion_y_orden; cambio_estado=true;}
+            // Serial.println("Estado Abriendo_señal_activa");
+            if (now - Temp_T4 > T4) { estado=Estados::Abriendo; cambio_estado=true; Temp_Tapertura=now;  }
+            else if (ordenes[1]) {estado=Estados::Cerrando_señal_activa; cambio_estado=true; Temp_T4=now;}
+            else if (entradas[0]) {estado=Estados::Abriendo_con_deteccion_y_orden; cambio_estado=true; Temp_T4=now;}
         break;   
         case Estados::Abierta:
-            if (now - Temp_T2 > T2) { estado=Estados::Cerrando_señal_activa; cambio_estado=true;  }
-            else if (ordenes[1]) {estado=Estados::Cerrando_señal_activa; cambio_estado=true;}
-            else if (entradas[0]) {estado=Estados::Abierta_con_deteccion; cambio_estado=true;}
+            // Serial.println("Estado Abierta");
+            if (now - Temp_T2 > T2) { estado=Estados::Cerrando_señal_activa; cambio_estado=true; Temp_T4=now;  }
+            else if (entradas[0]) {estado=Estados::Abierta_con_deteccion; cambio_estado=true; Temp_T1=now;}
+            else if (ordenes[1]) {estado=Estados::Cerrando_señal_activa; cambio_estado=true; Temp_T4=now;}
         break; 
         case Estados::Abriendo:
-            if (now - Temp_Tapertura > Tapertura) { estado=Estados::Abierta; cambio_estado=true;  }
-            else if (ordenes[1]) {estado=Estados::Cerrando_señal_activa; cambio_estado=true;}
-            else if (entradas[0]) {estado=Estados::Abriendo_con_deteccion; cambio_estado=true;}
+            // Serial.println("Estado Abriendo");
+            if (now - Temp_Tapertura > Tapertura) { estado=Estados::Abierta; cambio_estado=true; Temp_T2=now;  }
+            else if (ordenes[1]) {estado=Estados::Cerrando_señal_activa; cambio_estado=true; Temp_T4=now;}
+            else if (entradas[0]) {estado=Estados::Abriendo_con_deteccion; cambio_estado=true; Temp_Tapertura=now;}
         break;          
         case Estados::Abierta_con_deteccion:
-            if (now - Temp_T1 > T1) { estado=Estados::Cerrando_señal_activa; cambio_estado=true;  }
-            else if (ordenes[1]) {estado=Estados::Cerrando_señal_activa; cambio_estado=true;}
+            // Serial.println("Estado Abierta_con_deteccion");
+            if (entradas[0]) {estado=Estados::Abierta_con_deteccion; cambio_estado=false; Temp_T1=now;}
+            else if (now - Temp_T1 > T1) { estado=Estados::Cerrando_señal_activa; cambio_estado=true; Temp_T4=now;  }
         break;   
         case Estados::Abriendo_con_deteccion:
-            if (now - Temp_Tapertura > Tapertura) { estado=Estados::Abierta_con_deteccion; cambio_estado=true;  }
+            // Serial.println("Estado Abriendo_con_deteccion");
+            if (now - Temp_Tapertura > Tapertura) { estado=Estados::Abierta_con_deteccion; cambio_estado=true; Temp_T1=now;  }
         break;       
         case Estados::Abriendo_con_deteccion_y_orden:
-            if (now - Temp_T4 > T4) { estado=Estados::Abriendo_con_deteccion; cambio_estado=true;  }
-        break;       
+            // Serial.println("Estado Abriendo_con_deteccion_y_orden");
+            if (now - Temp_T4 > T4) { estado=Estados::Abriendo_con_deteccion; cambio_estado=true; Temp_Tapertura=now;  }
+        break;   
+        case Estados::Configuracion:
+        break;
     }
 }
 
@@ -227,10 +241,7 @@ String processor(const String &var)
     {
         return readFile(LittleFS, "/Tcierre.txt");
     }
-    else if (var == "temp_comms")
-    {
-        return readFile(LittleFS, "/temp_comms.txt");
-    }
+
     else if (var == "estado_wifi")
     {
         if (WiFi.status() == WL_CONNECTED)
@@ -253,7 +264,6 @@ String processor(const String &var)
             return "Desconectado";
         }
     }
-
     return String();
 }
 
@@ -282,7 +292,6 @@ void setup_wifi()
 void s1(int i, boolean estado)
 {
     ordenes[i]=estado;
-    proximoEstado();
 }
 
 void connect(const String& host, int port) 
@@ -322,7 +331,7 @@ void callback(char *topic, byte *message, unsigned int length)
     {
         if (mensaje == "on")
         {
-            s1(1,false);
+            s1(1,true);
         }
         String stopc = nombre_completo_ordenes[1] + "c";
         client.publish(stopc.c_str(), "off");
@@ -403,6 +412,14 @@ void reconnect()
             Serial.println(nombre_estado);
 
             Serial.println("");
+
+            client.subscribe(nombre_completo_ordenes[0].c_str(), 1);
+            client.subscribe(nombre_completo_ordenes[1].c_str(), 1);
+            client.subscribe(nombre_completo_temporizadores[0].c_str(), 1);
+            client.subscribe(nombre_completo_temporizadores[1].c_str(), 1);
+            client.subscribe(nombre_completo_temporizadores[2].c_str(), 1);
+            client.subscribe(nombre_completo_temporizadores[3].c_str(), 1);
+            client.subscribe(nombre_completo_temporizadores[4].c_str(), 1);
         }
 
         else
@@ -488,13 +505,13 @@ void servidorhttp()
     server.begin();
 }
 
-void ICACHE_RAM_ATTR E0_interr() {
-    entradas[0]=true;
-}
+// void ICACHE_RAM_ATTR  E0_interr() {
+//     entradas[0]=true;
+// }
 
-void ICACHE_RAM_ATTR E1_interr() {
-    entradas[1]=true;
-}
+// void ICACHE_RAM_ATTR  E1_interr() {
+//     entradas[1]=true;
+// }
 
 void setup()
 {
@@ -599,9 +616,11 @@ void setup()
         pinMode(Entrada_configuracion, INPUT_PULLUP);
         pinMode(Entradas[0], INPUT_PULLUP);
         pinMode(Entradas[1], INPUT_PULLUP);
+        pinMode(Salida[0], OUTPUT);
+        pinMode(Salida[1], OUTPUT);
 
-        attachInterrupt(Entradas[0], E0_interr, FALLING);
-        attachInterrupt(Entradas[1], E1_interr, FALLING);
+        // attachInterrupt(digitalPinToInterrupt(Entradas[0]), E0_interr, FALLING);
+        // attachInterrupt(digitalPinToInterrupt(Entradas[1]), E1_interr, FALLING);
 
         servidorhttp();
         proximoEstado();
@@ -610,7 +629,7 @@ void setup()
 
 void comms()
 {
-    temp_comms = now;
+    temp_Tcomms = now;
 
     for (int i = 0; i <= 4; i++)
     {
@@ -644,17 +663,36 @@ void comms()
     String Taperturaa=(String)tapertura;
     String Tcierrea=(String)tcierre;
     
-    String c[4] = {};
-    String sa = nombre_estado + "c";
-    String sc[4] = {};
-    String a="";
 
+    sa = nombre_estado + "c";
+    String a="";
+    String c[2]={"",""};
+    String d[2]={"",""};
+
+    for (int i = 0; i <= 4; i++)
+    {
+        sb[i] = nombre_completo_temporizadores[i]+ "c";
+    }
+
+    for (int i = 0; i <= 1; i++)
+    {
+        sc[i] = nombre_completo_entradas[i]+ "c";
+        c[i]=(String)digitalRead(Entradas[i]);
+    }
+
+    for (int i = 0; i <= 1; i++)
+    {
+        sd[i] = nombre_completo_ordenes[i]+ "c";
+        d[i]=(String)ordenes[i];
+
+    }
+    
     switch (estado) {
         case 0:
-            a="Abriendo_señal_activa";
+            a="Abriendo señal activa";
         break;
         case 1:
-            a="Cerrando_señal_activa";
+            a="Cerrando señal activa";
         break;
         case 2:
             a="Abierta";
@@ -666,24 +704,40 @@ void comms()
             a="Abierta con deteccion";
         break;
         case 5:
-            a="Abriendo_señal_activa con deteccion";
+            a="Abriendo con deteccion";
         break;
         case 6:
             a="Configuracion";
         break;
+        case 7:
+            a="Abriendo";
+        break;
+        case 8:
+            a="Cerrando";
+        break;
+        case 9:
+            a="Abriendo con deteccion y señal activa";
+        break;
     }
 
-    client.publish(nombre_completo_temporizadores[0].c_str(), Taperturaa.c_str());
-    client.publish(nombre_completo_temporizadores[1].c_str(), Tcierrea.c_str());
-    client.publish(nombre_completo_temporizadores[2].c_str(), T1a.c_str());
-    client.publish(nombre_completo_temporizadores[3].c_str(), T2a.c_str());
-    client.publish(nombre_completo_temporizadores[4].c_str(), T3a.c_str());
+    client.publish(sb[0].c_str(), Taperturaa.c_str());
+    client.publish(sb[1].c_str(), Tcierrea.c_str());
+    client.publish(sb[2].c_str(), T1a.c_str());
+    client.publish(sb[3].c_str(), T2a.c_str());
+    client.publish(sb[4].c_str(), T3a.c_str());
+    client.publish(sc[0].c_str(), c[0].c_str());
+    client.publish(sc[1].c_str(), c[1].c_str());
+    client.publish(sd[0].c_str(), d[0].c_str());
+    client.publish(sd[1].c_str(), d[1].c_str());
     client.publish(sa.c_str(), a.c_str());
+
 }
 
 void loop()
 {
     Valor_entrada_configuracion = digitalRead(Entrada_configuracion);
+    entradas[0] = digitalRead(Entradas[0]);
+    entradas[1] = digitalRead(Entradas[0]);
 
     if (Valor_entrada_configuracion == true)
     {
@@ -702,17 +756,18 @@ void loop()
 
         proximoEstado();
 
-        if (now - temp_comms > 10000) // Lazo envío estado
+        if (now - temp_Tcomms > Tcomms) // Lazo envío estado
         {
             comms();
         }
                 
-        if (cambio_estado){
-
+        if (cambio_estado)
+        {
             switch (estado)
             {
                 case Estados::Cerrando_señal_activa:
                 {
+                    Serial.println("Estado Cerrando_señal_activa");
                     digitalWrite(Salida[0], HIGH);
                     digitalWrite(Salida[1], LOW);
                     ordenes[0] = false;                    
@@ -724,6 +779,7 @@ void loop()
                 break;
                 case Estados::Cerrando:
                 {
+                    Serial.println("Estado Cerrando");
                     digitalWrite(Salida[0], LOW);
                     digitalWrite(Salida[1], LOW);
                     ordenes[0] = false;                    
@@ -735,6 +791,7 @@ void loop()
                 break;
                 case Estados::Cerrada:
                 {
+                    Serial.println("Estado Cerrada");
                     digitalWrite(Salida[0], LOW);
                     digitalWrite(Salida[1], LOW);
                     ordenes[0] = false;                    
@@ -746,6 +803,7 @@ void loop()
                 break;
                 case Estados::Abriendo_señal_activa:
                 {
+                    Serial.println("Estado Abriendo_señal_activa");
                     digitalWrite(Salida[0], LOW);
                     digitalWrite(Salida[1], HIGH);
                     ordenes[0] = false;                    
@@ -757,6 +815,7 @@ void loop()
                 break;
                 case Estados::Abriendo:
                 {
+                    Serial.println("Estado Abriendo");
                     digitalWrite(Salida[0], LOW);
                     digitalWrite(Salida[1], LOW);
                     ordenes[0] = false;                    
@@ -768,6 +827,7 @@ void loop()
                 break;
                 case Estados::Abierta:
                 {
+                    Serial.println("Estado Abierta");
                     digitalWrite(Salida[0], LOW);
                     digitalWrite(Salida[1], LOW);
                     ordenes[0] = false;                    
@@ -779,6 +839,7 @@ void loop()
                 break;
                 case Estados::Abierta_con_deteccion:
                 {
+                    Serial.println("Estado Abierta_con_deteccion");
                     digitalWrite(Salida[0], LOW);
                     digitalWrite(Salida[1], LOW);
                     ordenes[0] = false;                    
@@ -790,6 +851,7 @@ void loop()
                 break;
                 case Estados::Abriendo_con_deteccion:
                 {
+                    Serial.println("Estado Abriendo_con_deteccion");
                     digitalWrite(Salida[0], LOW);
                     digitalWrite(Salida[1], LOW);
                     ordenes[0] = false;                    
@@ -801,6 +863,7 @@ void loop()
                 break;
                 case Estados::Abriendo_con_deteccion_y_orden:
                 {
+                    Serial.println("Estado Abriendo_con_deteccion_y_orden");
                     digitalWrite(Salida[0], LOW);
                     digitalWrite(Salida[1], HIGH);
                     ordenes[0] = false;                    
@@ -808,8 +871,14 @@ void loop()
                     entradas[0]=false;
                     entradas[1]=false;
                     cambio_estado=false;
+                    Temp_T4=now;
                 }
                 break;
+                case Estados::Configuracion:
+                {
+
+                }
+                break;                
             }
         }
     }
