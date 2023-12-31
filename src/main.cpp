@@ -737,7 +737,7 @@ void loop()
 {
     Valor_entrada_configuracion = digitalRead(Entrada_configuracion);
     entradas[0] = digitalRead(Entradas[0]);
-    entradas[1] = digitalRead(Entradas[0]);
+    entradas[1] = digitalRead(Entradas[1]);
 
     if (Valor_entrada_configuracion == true)
     {
