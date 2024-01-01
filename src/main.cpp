@@ -754,12 +754,12 @@ void loop()
 
         now = millis();
 
-        proximoEstado();
-
         if (now - temp_Tcomms > Tcomms) // Lazo envío estado
         {
             comms();
         }
+
+        proximoEstado();
                 
         if (cambio_estado)
         {
@@ -878,8 +878,10 @@ void loop()
                 {
 
                 }
-                break;                
+                break;  
             }
+ 
+            comms();              
         }
     }
 }
