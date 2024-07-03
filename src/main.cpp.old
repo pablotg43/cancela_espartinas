@@ -1,4 +1,5 @@
-// Cancela con final de carrera cerrada y célula
+// Cancela sin final de carrera cerrada con célula
+
 
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
@@ -105,44 +106,39 @@ void proximoEstado()
             if (now - Temp_T4 > T4) { estado=Estados::Cerrando; cambio_estado=true; Temp_Tcierre=now;  }
             else if (ordenes[0]) {estado=Estados::Abriendo_señal_activa; cambio_estado=true; Temp_T4=now;}
             else if (entradas[0]) {estado=Estados::Abriendo_con_deteccion_y_orden; cambio_estado=true; Temp_T4=now;}
-            else if (entradas[1]) {estado=Estados::Cerrada; cambio_estado=true;}
         break;
         case Estados::Cerrada:
             // Serial.println("Estado Cerrada");
-            if (!entradas[1]) {estado=Estados::Abierta; cambio_estado=true;}
+            if (now - Temp_T3 > T3) { estado=Estados::Cerrada; cambio_estado=true; Temp_T3=now;  }
             else if (ordenes[0]) {estado=Estados::Abriendo_señal_activa; cambio_estado=true; Temp_T4=now;}
         break;
         case Estados::Cerrando:
             // Serial.println("Estado Cerrando");
-            if (ordenes[0]) {estado=Estados::Abriendo_señal_activa; cambio_estado=true; Temp_T4=now;}
+            if (now - Temp_Tcierre > Tcierre) { estado=Estados::Cerrada; cambio_estado=true; Temp_T3=now;  }
+            else if (ordenes[0]) {estado=Estados::Abriendo_señal_activa; cambio_estado=true; Temp_T4=now;}
             else if (entradas[0]) {estado=Estados::Abriendo_con_deteccion_y_orden; cambio_estado=true; Temp_T4=now;}
-            else if (entradas[1]) {estado=Estados::Cerrada; cambio_estado=true;}
         break;        
         case Estados::Abriendo_señal_activa:
             // Serial.println("Estado Abriendo_señal_activa");
             if (now - Temp_T4 > T4) { estado=Estados::Abriendo; cambio_estado=true; Temp_Tapertura=now;  }
             else if (ordenes[1]) {estado=Estados::Cerrando_señal_activa; cambio_estado=true; Temp_T4=now;}
-            else if (ordenes[0]) {estado=Estados::Cerrando_señal_activa; cambio_estado=true; Temp_T4=now;}
             else if (entradas[0]) {estado=Estados::Abriendo_con_deteccion_y_orden; cambio_estado=true; Temp_T4=now;}
         break;   
         case Estados::Abierta:
             // Serial.println("Estado Abierta");
-            if (entradas[0]) {estado=Estados::Abierta_con_deteccion; cambio_estado=true; Temp_T1=now;}
-            else if (entradas[1]) {estado=Estados::Cerrada; cambio_estado=true; }
+            if (now - Temp_T2 > T2) { estado=Estados::Cerrando_señal_activa; cambio_estado=true; Temp_T4=now;  }
+            else if (entradas[0]) {estado=Estados::Abierta_con_deteccion; cambio_estado=true; Temp_T1=now;}
             else if (ordenes[1]) {estado=Estados::Cerrando_señal_activa; cambio_estado=true; Temp_T4=now;}
-            else if (ordenes[0]) {estado=Estados::Cerrando_señal_activa; cambio_estado=true; Temp_T4=now;}
         break; 
         case Estados::Abriendo:
             // Serial.println("Estado Abriendo");
-            if (now - Temp_Tapertura > Tapertura) { estado=Estados::Abierta; cambio_estado=true; }
+            if (now - Temp_Tapertura > Tapertura) { estado=Estados::Abierta; cambio_estado=true; Temp_T2=now;  }
             else if (ordenes[1]) {estado=Estados::Cerrando_señal_activa; cambio_estado=true; Temp_T4=now;}
-            else if (ordenes[0]) {estado=Estados::Cerrando_señal_activa; cambio_estado=true; Temp_T4=now;}
-            else if (entradas[0]) {estado=Estados::Abriendo_con_deteccion; cambio_estado=true;}
+            else if (entradas[0]) {estado=Estados::Abriendo_con_deteccion; cambio_estado=true; Temp_Tapertura=now;}
         break;          
         case Estados::Abierta_con_deteccion:
             // Serial.println("Estado Abierta_con_deteccion");
             if (entradas[0]) {estado=Estados::Abierta_con_deteccion; cambio_estado=false; Temp_T1=now;}
-            else if (entradas[1]) {estado=Estados::Cerrada; cambio_estado=true;}
             else if (now - Temp_T1 > T1) { estado=Estados::Cerrando_señal_activa; cambio_estado=true; Temp_T4=now;  }
         break;   
         case Estados::Abriendo_con_deteccion:
@@ -744,7 +740,7 @@ void loop()
 {
     Valor_entrada_configuracion = digitalRead(Entrada_configuracion);
     entradas[0] = digitalRead(Entradas[0]);
-    entradas[1] = !digitalRead(Entradas[1]);
+    entradas[1] = digitalRead(Entradas[1]);
 
     if (Valor_entrada_configuracion == true)
     {
@@ -779,8 +775,8 @@ void loop()
                     digitalWrite(Salida[1], LOW);
                     ordenes[0] = false;                    
                     ordenes[1] = false;                    
-                    // entradas[0]=false;
-                    // entradas[1]=false;
+                    entradas[0]=false;
+                    entradas[1]=false;
                     cambio_estado=false;
                 }
                 break;
@@ -791,8 +787,8 @@ void loop()
                     digitalWrite(Salida[1], LOW);
                     ordenes[0] = false;                    
                     ordenes[1] = false;                    
-                    // entradas[0]=false;
-                    // entradas[1]=false;
+                    entradas[0]=false;
+                    entradas[1]=false;
                     cambio_estado=false;
                 }
                 break;
@@ -803,8 +799,8 @@ void loop()
                     digitalWrite(Salida[1], LOW);
                     ordenes[0] = false;                    
                     ordenes[1] = false;                    
-                    // entradas[0]=false;
-                    // entradas[1]=false;
+                    entradas[0]=false;
+                    entradas[1]=false;
                     cambio_estado=false;
                 }
                 break;
@@ -815,8 +811,8 @@ void loop()
                     digitalWrite(Salida[1], HIGH);
                     ordenes[0] = false;                    
                     ordenes[1] = false;                    
-                    // entradas[0]=false;
-                    // entradas[1]=false;
+                    entradas[0]=false;
+                    entradas[1]=false;
                     cambio_estado=false;
                 }
                 break;
@@ -827,8 +823,8 @@ void loop()
                     digitalWrite(Salida[1], LOW);
                     ordenes[0] = false;                    
                     ordenes[1] = false;                    
-                    // entradas[0]=false;
-                    // entradas[1]=false;
+                    entradas[0]=false;
+                    entradas[1]=false;
                     cambio_estado=false;
                 }
                 break;
@@ -839,8 +835,8 @@ void loop()
                     digitalWrite(Salida[1], LOW);
                     ordenes[0] = false;                    
                     ordenes[1] = false;                    
-                    // entradas[0]=false;
-                    // entradas[1]=false;
+                    entradas[0]=false;
+                    entradas[1]=false;
                     cambio_estado=false;
                 }
                 break;
@@ -851,8 +847,8 @@ void loop()
                     digitalWrite(Salida[1], LOW);
                     ordenes[0] = false;                    
                     ordenes[1] = false;                    
-                    // entradas[0]=false;
-                    // entradas[1]=false;
+                    entradas[0]=false;
+                    entradas[1]=false;
                     cambio_estado=false;
                 }
                 break;
@@ -863,8 +859,8 @@ void loop()
                     digitalWrite(Salida[1], LOW);
                     ordenes[0] = false;                    
                     ordenes[1] = false;                    
-                    // entradas[0]=false;
-                    // entradas[1]=false;
+                    entradas[0]=false;
+                    entradas[1]=false;
                     cambio_estado=false;
                 }
                 break;
@@ -875,8 +871,8 @@ void loop()
                     digitalWrite(Salida[1], HIGH);
                     ordenes[0] = false;                    
                     ordenes[1] = false;                    
-                    // entradas[0]=false;
-                    // entradas[1]=false;
+                    entradas[0]=false;
+                    entradas[1]=false;
                     cambio_estado=false;
                     Temp_T4=now;
                 }
